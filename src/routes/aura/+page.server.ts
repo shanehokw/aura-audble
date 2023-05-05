@@ -9,22 +9,9 @@ import { FeatureBounds } from '../../types/featureBounds.enum';
 import { DanceabilityColourStops } from '../../types/danceabilityColourStops.enum';
 import { EnergyColourStops } from '../../types/energyColourStops.enum';
 import { ValenceColourStops } from '../../types/valenceColourStops.enum';
-import { getToken } from '$lib/server/getToken';
 
-export const load = (async ({ cookies, url }) => {
+export const load = (async ({ cookies }) => {
 	const token: string = cookies.get('token') || '';
-
-	console.log(token);
-
-	if (!token) {
-		const code: string = url.searchParams.get('code') || '';
-
-		const token = await getToken(code);
-
-		console.log(token);
-
-		cookies.set('token', token);
-	}
 
 	const getAuraColours = async () => {
 		const topTracksParams = new URLSearchParams({
