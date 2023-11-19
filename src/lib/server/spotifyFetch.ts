@@ -1,19 +1,15 @@
+import { SPOTIFY_API_URL } from '$lib/constants';
+
 export default {
-	async get(endpoint: string, token: string) {
-		const res = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			},
+	get: async (endpoint: string) => {
+		const res = await fetch(`${SPOTIFY_API_URL}/${endpoint}`, {
 			method: 'GET'
 		});
 
 		return await res.json();
 	},
-	async post(endpoint: string, token: string, body: object | null) {
-		const res = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			},
+	post: async (endpoint: string, body: object | null) => {
+		const res = await fetch(`${SPOTIFY_API_URL}/${endpoint}`, {
 			method: 'POST',
 			body: JSON.stringify(body)
 		});

@@ -1,7 +1,7 @@
-import SpotifyFetch from '$lib/server/spotifyFetch';
-import { calcColourInGradient } from '$lib/server/calcColourInGradient';
+// import SpotifyFetch from '$lib/server/spotifyFetch';
+import { calcColourInGradient } from '$lib/utils';
 import type { AudioFeatures, Track } from 'spotify-types';
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import type { MinMaxFeaturesSongs } from '../../types/minMaxFeaturesSongs.type';
 import type { DesiredFeatures } from '../../types/desiredFeatures.type';
 import type { FeatureColours } from '../../types/featureColours.type';
@@ -9,27 +9,46 @@ import { FeatureBounds } from '../../types/featureBounds.enum';
 import { DanceabilityColourStops } from '../../types/danceabilityColourStops.enum';
 import { EnergyColourStops } from '../../types/energyColourStops.enum';
 import { ValenceColourStops } from '../../types/valenceColourStops.enum';
+import { ENDPOINTS, SPOTIFY_API_URL } from '$lib/constants';
+import { error } from '@sveltejs/kit';
 
-export const load = (async ({ cookies }) => {
-	const token: string = cookies.get('token') || '';
-
+export const load = (async ({ fetch }) => {
 	const getAuraColours = async () => {
 		const topTracksParams = new URLSearchParams({
 			limit: '5',
 			time_range: 'medium_term'
 		});
 
-		const topTracks = await SpotifyFetch.get('me/top/tracks?' + topTracksParams.toString(), token);
+		// const topTracks = await SpotifyFetch.get('me/top/tracks?' + topTracksParams.toString());
+
+		const topTracksReq = await fetch(
+			`${SPOTIFY_API_URL}/${ENDPOINTS.MY_TOP_TRACKS}?${topTracksParams}`
+		);
+
+		if (!topTracksReq.ok) throw error(topTracksReq.status, 'Failed to load top tracks');
+
+		const topTracks = await topTracksReq.json();
+
+		// console.log(topTracks);
 
 		const trackIDs: string[] = topTracks.items.map((item: Track) => item.id);
 
 		const featuresParams = new URLSearchParams({
 			ids: trackIDs.join(',')
 		});
-		const features: { [audio_features: string]: AudioFeatures[] } = await SpotifyFetch.get(
-			'audio-features?' + featuresParams.toString(),
-			token
+		// const features: { [audio_features: string]: AudioFeatures[] } = await SpotifyFetch.get(
+		// 	'audio-features?' + featuresParams.toString()
+		// );
+
+		const featuresReq = await fetch(
+			`${SPOTIFY_API_URL}/${ENDPOINTS.AUDIO_FEATURES}?${featuresParams}`
 		);
+
+		if (!featuresReq.ok) throw error(featuresReq.status, 'Failed to load features');
+
+		const features: { audio_features: AudioFeatures[] } = await featuresReq.json();
+
+		console.log(features);
 
 		const minMaxFeaturesSongs: MinMaxFeaturesSongs = {
 			maxValenceSong: '',
@@ -190,4 +209,4 @@ export const load = (async ({ cookies }) => {
 	return {
 		featureColours: getAuraColours()
 	};
-}) satisfies PageServerLoad;
+}) satisfies PageLoad;
